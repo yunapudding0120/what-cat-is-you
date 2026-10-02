@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>你是哪一種貓？ - 貓咪心理測驗</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Zen Maru Gothic & Fredoka for playful cat vibe -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Zen+Maru+Gothic:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <!-- FontAwesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Zen Maru Gothic"', 'sans-serif'],
+                        playful: ['"Fredoka"', '"Zen Maru Gothic"', 'sans-serif']
+                    },
+                    colors: {
+                        catOrange: '#F98866',
+                        catCream: '#FFF2D7',
+                        catBrown: '#8B5E3C',
+                        catGrey: '#A8BBA2',
+                        catDark: '#4A3E3D',
+                        catPink: '#FFB7C5',
+                    },
+                    keyframes: {
+                        bounceLittle: {
+                            '0%, 100%': { transform: 'translateY(-3%)' },
+                            '50%': { transform: 'translateY(0)' }
+                        },
+                        popIn: {
+                            '0%': { transform: 'scale(0.8)', opacity: '0' },
+                            '100%': { transform: 'scale(1)', opacity: '1' }
+                        },
+                        purr: {
+                            '0%, 100%': { transform: 'rotate(-2deg)' },
+                            '50%': { transform: 'rotate(2deg)' }
+                        }
+                    },
+                    animation: {
+                        bounceLittle: 'bounceLittle 2s infinite ease-in-out',
+                        popIn: 'popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards',
+                        purr: 'purr 0.3s infinite ease-in-out'
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        body {
+            font-family: 'Zen Maru Gothic', sans-serif;
+            background-color: #FAF4ED;
+            color: #4A3E3D;
+            touch-action: manipulation;
+        }
+
+        .cat-ears-container {
+            position: relative;
+        }
+        .cat-ears-container::before, .cat-ears-container::after {
+            content: '';
+            position: absolute;
+            top: -24px;
+            width: 0;
+            height: 0;
+            border-left: 20px solid transparent;
+            border-right: 20px solid transparent;
+            border-bottom: 28px solid #F98866;
+            z-index: 10;
+        }
+        .cat-ears-container::before { left: 20px; transform: rotate(-15deg); }
+        .cat-ears-container::after { right: 20px; transform: rotate(15deg); }
+
+        .cat-inner-ears::before, .cat-inner-ears::after {
+            content: '';
+            position: absolute;
+            top: -18px;
+            width: 0;
+            height: 0;
+            border-left: 12px solid transparent;
+            border-right: 12px solid transparent;
+            border-bottom: 20px solid #FFB7C5;
+            z-index: 11;
+        }
+        .cat-inner-ears::before { left: 28px; transform: rotate(-15deg); }
+        .cat-inner-ears::after { right: 28px; transform: rotate(15deg); }
+
+        /* Paw effect animation */
+        .paw-print {
+            position: fixed;
+            pointer-events: none;
+            opacity: 1;
+            transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+            z-index: 9999;
+            color: #FFB7C5;
+        }
+
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #FAF4ED;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #F98866;
+            border-radius: 999px;
+        }
+
+        .gradient-text {
+            background: linear-gradient(135deg, #E06D53, #D97724);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(10px);
+            border: 3px solid #FFF0E5;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center justify-between p-4 md:p-6 overflow-x-hidden selection:bg-catPink selection:text-white">
+
+    <!-- Top Decorative Paw Row -->
+    <header class="w-full max-w-xl text-center pt-4 pb-2 relative">
+        <div class="flex justify-center items-center gap-2 mb-1 text-catOrange opacity-80 text-xl">
+            <i class="fa-solid fa-paw transform -rotate-12"></i>
+            <i class="fa-solid fa-paw transform rotate-6"></i>
+            <i class="fa-solid fa-paw transform -rotate-6"></i>
+            <i class="fa-solid fa-paw transform rotate-12"></i>
+        </div>
+        <h1 class="text-3xl sm:text-4xl md:text-5xl font-black gradient-text tracking-wide flex items-center justify-center gap-2">
+            <span>你是哪一種貓？</span>
+        </h1>
+        <p class="text-xs sm:text-sm text-catBrown/80 mt-2 font-medium">輸入姓名與生日，探索你的前世貓咪身分與命中家庭！</p>
+    </header>
+
+    <main class="w-full max-w-lg my-auto relative z-20">
+
+        <!-- INPUT FORM SECTION -->
+        <div id="inputSection" class="transition-all duration-500 transform translate-y-0 opacity-100">
+            <!-- Container with Cat Ears -->
+            <div class="cat-ears-container cat-inner-ears relative mt-6">
+                <div class="glass-card rounded-3xl p-6 md:p-8 shadow-xl relative z-10 border-4 border-amber-100/60">
+                    
+                    <div class="text-center mb-6">
+                        <span class="inline-block bg-amber-100 text-catBrown text-xs font-bold px-3 py-1 rounded-full mb-2">
+                            <i class="fa-solid fa-wand-magic-sparkles mr-1"></i> 精準命定演算法
+                        </span>
+                        <h2 class="text-xl font-bold text-catDark">開啟你的靈魂貓咪測驗</h2>
+                    </div>
+
+                    <form id="catForm" onsubmit="calculateCat(event)" class="space-y-5">
+                        <!-- Name Input -->
+                        <div>
+                            <label for="userName" class="block text-sm font-bold text-catDark mb-1 flex items-center gap-2">
+                                <i class="fa-solid fa-signature text-catOrange"></i> 你的姓名 / 暱稱：
+                            </label>
+                            <div class="relative">
+                                <input type="text" id="userName" required placeholder="例如：喵星人、小明" 
+                                    class="w-full px-4 py-3 rounded-2xl border-2 border-amber-200 focus:border-catOrange focus:ring-2 focus:ring-catOrange/20 outline-none transition-all text-catDark font-bold bg-white/90 placeholder-amber-900/30">
+                                <div class="absolute right-3 top-3 text-catOrange/50">
+                                    <i class="fa-solid fa-cat text-lg"></i>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Birthday Input -->
+                        <div>
+                            <label for="userBirth" class="block text-sm font-bold text-catDark mb-1 flex items-center gap-2">
+                                <i class="fa-solid fa-cake-candles text-catOrange"></i> 你的生日：
+                            </label>
+                            <div class="relative">
+                                <input type="date" id="userBirth" required
+                                    class="w-full px-4 py-3 rounded-2xl border-2 border-amber-200 focus:border-catOrange focus:ring-2 focus:ring-catOrange/20 outline-none transition-all text-catDark font-bold bg-white/90">
+                            </div>
+                        </div>
+
+                        <!-- Submit Button -->
+                        <button type="submit" 
+                            class="w-full py-4 bg-gradient-to-r from-catOrange to-amber-500 hover:from-amber-500 hover:to-catOrange text-white font-bold text-lg rounded-2xl shadow-lg hover:shadow-xl transform active:scale-95 transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer border-b-4 border-amber-700/30">
+                            <i class="fa-solid fa-paw text-xl"></i>
+                            <span>測出我的命中貓種</span>
+                        </button>
+                    </form>
+
+                    <!-- Small hint -->
+                    <p class="text-center text-xs text-amber-800/60 mt-4">
+                        <i class="fa-solid fa-lock text-xs mr-1"></i> 相同姓名與生日，測試結果將 100% 相同！
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- LOADING SECTION (Hidden by default) -->
+        <div id="loadingSection" class="hidden text-center py-12 space-y-4">
+            <div class="relative inline-block">
+                <div class="w-24 h-24 border-4 border-catOrange border-t-transparent rounded-full animate-spin mx-auto"></div>
+                <div class="absolute inset-0 flex items-center justify-center text-3xl animate-bounce">
+                    🐱
+                </div>
+            </div>
+            <h3 class="text-2xl font-bold text-catDark animate-pulse">正在透過喵星電波計算中...</h3>
+            <p class="text-sm text-catBrown">正在從 50+ 種貓咪與 20 種神秘家庭中尋找您的命定匹配...</p>
+        </div>
+
+        <!-- RESULT SECTION (Hidden by default) -->
+        <div id="resultSection" class="hidden transition-all duration-700 transform translate-y-4 opacity-0">
+            <div id="resultCard" class="rounded-3xl p-6 sm:p-8 shadow-2xl relative border-4 border-white/80 overflow-hidden transition-colors duration-500">
+                
+                <!-- Floating Decorative Paw Print Icons -->
+                <div class="absolute top-3 right-4 text-white/30 text-4xl transform rotate-12">
+                    <i class="fa-solid fa-paw"></i>
+                </div>
+                <div class="absolute bottom-4 left-4 text-white/20 text-5xl transform -rotate-12">
+                    <i class="fa-solid fa-cat"></i>
+                </div>
+
+                <!-- Personal Title Header -->
+                <div class="text-center mb-4 relative z-10">
+                    <div class="inline-flex items-center gap-1 bg-white/60 backdrop-blur-md px-4 py-1 rounded-full text-xs font-bold text-catDark shadow-sm mb-2">
+                        <i class="fa-solid fa-sparkles text-amber-500"></i>
+                        <span id="resultUserTag">測驗結果</span>
+                    </div>
+                    <!-- Full Result Name (Pattern + Breed) -->
+                    <h2 class="text-2xl sm:text-3xl font-black text-slate-800 tracking-wide mt-1" id="resultCatTitle">
+                        經典橘虎斑 英國短毛貓
+                    </h2>
+                </div>
+
+                <!-- Cat Image Box -->
+                <div class="relative w-full aspect-square max-w-xs mx-auto mb-5 rounded-2xl overflow-hidden shadow-lg border-4 border-white bg-slate-100 group">
+                    <img id="resultCatImg" src="" alt="貓咪照片" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                         onerror="this.src='https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=600&auto=format&fit=crop&q=80'">
+                    <div id="patternBadge" class="absolute bottom-3 left-3 bg-slate-900/75 backdrop-blur-md text-white text-xs font-bold px-3 py-1.5 rounded-xl border border-white/20">
+                        ✨ 稀有度：夢幻級
+                    </div>
+                </div>
+
+                <!-- Result Details Grid -->
+                <div class="space-y-3 relative z-10">
+                    <!-- Household Environment Section -->
+                    <div class="bg-white/80 backdrop-blur-md rounded-2xl p-4 shadow-sm border border-white/60">
+                        <div class="text-xs font-bold text-amber-900/60 uppercase tracking-wider mb-1 flex items-center gap-1.5">
+                            <i class="fa-solid fa-house-chimney text-catOrange"></i>
+                            <span>命定轉世家庭 (在什麼家庭？)</span>
+                        </div>
+                        <p id="resultHome" class="text-base sm:text-lg font-black text-slate-800 leading-snug">
+                            住在千金大小姐的陽光豪宅
+                        </p>
+                    </div>
+
+                    <!-- Cat Traits / Personality Analysis -->
+                    <div class="bg-white/80 backdrop-blur-md rounded-2xl p-4 shadow-sm border border-white/60">
+                        <div class="text-xs font-bold text-amber-900/60 uppercase tracking-wider mb-1 flex items-center gap-1.5">
+                            <i class="fa-solid fa-heart-pulse text-rose-500"></i>
+                            <span>貓咪靈魂性格分析</span>
+                        </div>
+                        <p id="resultDesc" class="text-xs sm:text-sm text-slate-700 leading-relaxed">
+                            性格溫和親人，擁有極強的適應力與觀察力。
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="mt-6 flex flex-col sm:flex-row gap-3 relative z-10">
+                    <button onclick="shareResult()" class="flex-1 py-3 px-4 bg-slate-800 hover:bg-slate-900 text-white font-bold rounded-2xl shadow-md hover:shadow-lg transition-all text-sm flex items-center justify-center gap-2 cursor-pointer">
+                        <i class="fa-solid fa-copy"></i>
+                        <span>複製結果連結</span>
+                    </button>
+                    <button onclick="resetTest()" class="flex-1 py-3 px-4 bg-white hover:bg-slate-50 text-slate-700 font-bold rounded-2xl shadow-md hover:shadow-lg transition-all text-sm flex items-center justify-center gap-2 border border-slate-200 cursor-pointer">
+                        <i class="fa-solid fa-rotate-right"></i>
+                        <span>再測一次</span>
+                    </button>
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+    <!-- Notification Toast -->
+    <div id="toast" class="fixed bottom-8 left-1/2 transform -translate-x-1/2 bg-slate-800/90 text-white text-sm font-bold px-5 py-3 rounded-2xl shadow-xl transition-all duration-300 opacity-0 pointer-events-none z-50 flex items-center gap-2">
+        <i class="fa-solid fa-circle-check text-green-400"></i>
+        <span id="toastMsg">已成功複製測驗結果！</span>
+    </div>
+
+    <!-- Footer -->
+    <footer class="w-full text-center py-4 text-xs text-catBrown/70 font-medium relative z-10">
+        <p>🐱 心理測驗僅供娛樂 · 願全天下的貓咪都有溫暖的家 ❤️</p>
+    </footer>
+
+    <script>
+        // 1. Data Sets Setup (50+ combinations of Cat Breeds + Coat Patterns & Colors)
+        
+        // Cat Breeds (16 types)
+        const CAT_BREEDS = [
+            { name: "英國短毛貓", traits: "體型圓潤、性格穩重沉靜，對任何事情都能保持淡定自如。" },
+            { name: "美國短毛貓", traits: "聰明活潑、好奇心強，是適應力極佳的全能型親人夥伴。" },
+            { name: "米克斯 (混血貓)", traits: "獨一無二且生命力極高，聰穎過人又帶有滿滿驚喜性格。" },
+            { name: "布偶貓", traits: "溫柔黏人、眼睛如星空般湛藍，最喜歡在主人懷裡撒嬌。" },
+            { name: "波斯貓", traits: "優雅高貴、舉止端莊，天生帶有一股如皇家貴族般的神祕氣場。" },
+            { name: "挪威森林貓", traits: "身形威猛、毛髮豐厚，擁有探索大自然的冒險者靈魂。" },
+            { name: "緬因貓", traits: "貓界溫柔巨巨人，外表霸氣威風，內心卻極度貼心溫暖。" },
+            { name: "暹羅貓", traits: "話多熱情、感情極度豐富，黏人指數百分百的神仙伴侶。" },
+            { name: "孟加拉豹貓", traits: "充滿野性美的條紋、精力充沛，隨時準備展現高超跳躍力。" },
+            { name: "蘇格蘭摺耳貓", traits: "圓滾滾大眼配軟萌造型，永遠保持如幼貓般的無辜可愛。" },
+            { name: "曼赤肯短腿貓", traits: "底盤極低、跑步像小火車，憑藉短腿萌翻全世界的開心果。" },
+            { name: "俄羅斯藍貓", traits: "身材纖細優雅，性格內斂害羞，只對認定的人展現滿腔愛意。" },
+            { name: "德文卷毛貓", traits: "像小精靈一樣機靈活潑，毛髮呈天然捲曲，古靈精怪討人喜歡。" },
+            { name: "斯芬克斯無毛貓", traits: "外表獨特、體溫溫暖，性格極度親人熱情，是終極黏人寶貝。" },
+            { name: "日本短尾貓", traits: "小兔子般的短尾巴，聰明靈巧且帶來滿滿幸運招財能量。" },
+            { name: "台灣本土虎斑貓", traits: "身手矯健、身世精明，既能抓老鼠又能賣萌撒嬌的萬能神貓。" }
+        ];
+
+        // Realistic Coat Patterns & Colors (16 types with specific background theme styling)
+        const COAT_PATTERNS = [
+            { name: "經典橘虎斑", bgStyle: "bg-gradient-to-br from-orange-200 via-amber-100 to-orange-300", badge: "暖陽橘色調" },
+            { name: "玳瑁色", bgStyle: "bg-gradient-to-br from-stone-400 via-amber-200 to-stone-600", badge: "神秘玳瑁色調" },
+            { name: "三花色 (Calico)", bgStyle: "bg-gradient-to-br from-orange-100 via-stone-100 to-amber-200", badge: "幸運三花色調" },
+            { name: "奶油淡金色", bgStyle: "bg-gradient-to-br from-amber-100 via-yellow-50 to-orange-100", badge: "溫柔奶油色調" },
+            { name: "純白雪花", bgStyle: "bg-gradient-to-br from-slate-100 via-blue-50 to-indigo-100", badge: "純潔雪白調" },
+            { name: "墨黑曜石", bgStyle: "bg-gradient-to-br from-slate-700 via-zinc-800 to-slate-900", badge: "高冷墨黑調", dark: true },
+            { name: "雙色賓士 (Tuxedo)", bgStyle: "bg-gradient-to-br from-zinc-300 via-slate-700 to-zinc-900", badge: "紳士賓士色調", dark: true },
+            { name: "銀白虎斑", bgStyle: "bg-gradient-to-br from-slate-200 via-gray-100 to-slate-400", badge: "洗鍊銀白調" },
+            { name: "藍灰色 (霧藍)", bgStyle: "bg-gradient-to-br from-blue-200 via-slate-300 to-slate-400", badge: "典雅霧藍調" },
+            { name: "焦糖拿鐵", bgStyle: "bg-gradient-to-br from-amber-200 via-amber-100 to-yellow-300", badge: "濃醇焦糖調" },
+            { name: "巧克力棕", bgStyle: "bg-gradient-to-br from-stone-300 via-amber-800 to-stone-700", badge: "香醇巧克力調", dark: true },
+            { name: "淺灰大理石紋", bgStyle: "bg-gradient-to-br from-slate-200 via-stone-200 to-slate-300", badge: "藝術大理石調" },
+            { name: "焦糖漸層重點色", bgStyle: "bg-gradient-to-br from-orange-100 via-amber-200 to-stone-400", badge: "溫暖重點色調" },
+            { name: "刺鼠金黃色", bgStyle: "bg-gradient-to-br from-yellow-200 via-amber-300 to-orange-200", badge: "野性金黃調" },
+            { name: "煙燻深灰", bgStyle: "bg-gradient-to-br from-gray-400 via-slate-600 to-zinc-700", badge: "神秘煙燻調", dark: true },
+            { name: "丁香淡紫灰", bgStyle: "bg-gradient-to-br from-purple-100 via-pink-100 to-slate-200", badge: "夢幻紫灰調" }
+        ];
+
+        // 20 Unique Household Environments (在什麼家庭？)
+        const HOUSEHOLDS = [
+            "住在千金大小姐的陽光豪宅（享有地暖與頂級鮭魚罐頭）",
+            "住在文青咖啡館的書架角落（每天聽爵士樂陪伴客人讀書）",
+            "住在阿嬤家永遠不餓的溫馨小屋（被餵得圓圓滾滾的寶貝）",
+            "住在工程師家裡陪伴寫程式的溫暖房間（鍵盤就是專屬睡墊）",
+            "住在露營熱愛者的戶外帳篷（跟著主人踩遍森林與溪流）",
+            "住在深夜爵士酒吧的神秘吧檯（享受微醺氛圍與特調溫牛奶）",
+            "住在畫家的日照畫室（滿身藝術氣息與溫暖日光）",
+            "住在花藝師的溫室花園（每天在花香與蝴蝶陪伴下午睡）",
+            "住在海邊民宿的露天陽台（聽著浪濤聲吹海風曬太陽）",
+            "住在大學生租屋處的溫馨小套房（陪伴主人一起熬夜通宵）",
+            "住在獨立書店的貓咪掌櫃位（深受所有書迷愛戴的神獸）",
+            "住在手作麵包店的烘焙後院（每天被剛出爐的奶油香氣包圍）",
+            "住在景觀植物園的樹蔭底下（天生的捉蟲專家與植物守護者）",
+            "住在琴房樂手的大飛機鋼琴上（伴隨古典鋼琴樂聲入睡）",
+            "住在古董店的紅木桌底下（見證無數歷史與歲月歲月）",
+            "住在頂樓花園的玻璃小屋（俯瞰整座城市的日出與夜景）",
+            "住在喜愛瑜珈主人的柔軟墊子上（天生的伸展大師）",
+            "住在甜點師的夢幻小屋（隨時都有最溫柔的撫摸與關愛）",
+            "住在寵物友善民宿的草皮中央（擁有數不盡的跑跳玩具）",
+            "住在星空天文台的觀星閣樓（陪伴天文學家一起數星星）"
+        ];
+
+        // Curated high-quality Unsplash cat photos corresponding to cat vibes
+        const CAT_IMAGES = [
+            "https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=600&auto=format&fit=crop&q=80",
+            "https://images.unsplash.com/photo-1573865526739-10659fec78a5?w=600&auto=format&fit=crop&q=80",
+            "https://images.unsplash.com/photo-1495360010541-f48722b34f7d?w=600&auto=format&fit=crop&q=80",
+            "https://images.unsplash.com/photo-1533738363-b7f9aef128ce?w=600&auto=format&fit=crop&q=80",
+            "https://images.unsplash.com/photo-1561948955-570b270e7c36?w=600&auto=format&fit=crop&q=80",
+            "https://images.unsplash.com/photo-1543852786-1cf6624b9987?w=600&auto=format&fit=crop&q=80",
+            "https://images.unsplash.com/photo-1518791841217-8f162f1e1131?w=600&auto=format&fit=crop&q=80",
+            "https://images.unsplash.com/photo-1533743983669-94fa5c4338ec?w=600&auto=format&fit=crop&q=80",
+            "https://images.unsplash.com/photo-1574158622682-e40e69881006?w=600&auto=format&fit=crop&q=80",
+            "https://images.unsplash.com/photo-1513360371669-4adf3dd7dff8?w=600&auto=format&fit=crop&q=80",
+            "https://images.unsplash.com/photo-1592194996308-7b43878e84a6?w=600&auto=format&fit=crop&q=80",
+            "https://images.unsplash.com/photo-1577023311546-acd0767731f0?w=600&auto=format&fit=crop&q=80"
+        ];
+
+        /**
+         * Deterministic Hash Algorithm (FNV-1a variant)
+         * Guarantees that exact same Name + Birthdate input produces 100% same hash output every single time.
+         */
+        function hashString(str) {
+            let hash = 2166136261;
+            for (let i = 0; i < str.length; i++) {
+                hash ^= str.charCodeAt(i);
+                hash += (hash << 1) + (hash << 4) + (hash << 7) + (hash << 8) + (hash << 24);
+            }
+            return Math.abs(hash);
+        }
+
+        function calculateCat(event) {
+            event.preventDefault();
+            
+            const name = document.getElementById('userName').value.trim();
+            const birth = document.getElementById('userBirth').value;
+
+            if (!name || !birth) return;
+
+            // Show loading animation
+            document.getElementById('inputSection').classList.add('hidden');
+            document.getElementById('loadingSection').classList.remove('hidden');
+
+            // Seed based on combination
+            const seedKey = `${name.toLowerCase()}_${birth}`;
+            const baseHash = hashString(seedKey);
+
+            // Calculate deterministic indices
+            const breedIndex = baseHash % CAT_BREEDS.length;
+            const patternIndex = Math.floor(baseHash / 3) % COAT_PATTERNS.length;
+            const householdIndex = Math.floor(baseHash / 7) % HOUSEHOLDS.length;
+            const imageIndex = Math.floor(baseHash / 11) % CAT_IMAGES.length;
+
+            const breedObj = CAT_BREEDS[breedIndex];
+            const patternObj = COAT_PATTERNS[patternIndex];
+            const householdObj = HOUSEHOLDS[householdIndex];
+            const catImgUrl = CAT_IMAGES[imageIndex];
+
+            // Simulate calculation delay for playful interactive feel
+            setTimeout(() => {
+                // Populate Result Elements
+                document.getElementById('resultUserTag').innerText = `${name} 的命定貓咪身份`;
+                document.getElementById('resultCatTitle').innerText = `${patternObj.name} ${breedObj.name}`;
+                document.getElementById('resultHome').innerText = householdObj;
+                document.getElementById('resultDesc').innerText = `${breedObj.traits} 在你的命定環境中，更添一份自在與愜意。`;
+                document.getElementById('patternBadge').innerText = `✨ 特質：${patternObj.badge}`;
+                document.getElementById('resultCatImg').src = catImgUrl;
+
+                // Dynamically update card background based on calculated coat pattern
+                const resultCard = document.getElementById('resultCard');
+                resultCard.className = `rounded-3xl p-6 sm:p-8 shadow-2xl relative border-4 border-white/80 overflow-hidden transition-all duration-700 animate-popIn ${patternObj.bgStyle}`;
+                
+                // Adjust text colors if background is dark
+                if (patternObj.dark) {
+                    document.getElementById('resultCatTitle').className = "text-2xl sm:text-3xl font-black text-white tracking-wide mt-1";
+                } else {
+                    document.getElementById('resultCatTitle').className = "text-2xl sm:text-3xl font-black text-slate-800 tracking-wide mt-1";
+                }
+
+                // Switch Views
+                document.getElementById('loadingSection').classList.add('hidden');
+                const resultSec = document.getElementById('resultSection');
+                resultSec.classList.remove('hidden');
+                setTimeout(() => {
+                    resultSec.classList.remove('opacity-0', 'translate-y-4');
+                }, 50);
+
+                // Create playful celebratory paw prints
+                spawnCelebrationPaws();
+
+            }, 1200);
+        }
+
+        function resetTest() {
+            const resultSec = document.getElementById('resultSection');
+            resultSec.classList.add('opacity-0', 'translate-y-4');
+            setTimeout(() => {
+                resultSec.classList.add('hidden');
+                document.getElementById('inputSection').classList.remove('hidden');
+            }, 300);
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toastMsg').innerText = message;
+            toast.classList.remove('opacity-0', 'pointer-events-none');
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'pointer-events-none');
+            }, 2500);
+        }
+
+        function shareResult() {
+            const name = document.getElementById('userName').value.trim();
+            const catTitle = document.getElementById('resultCatTitle').innerText;
+            const home = document.getElementById('resultHome').innerText;
+            
+            const shareText = `【你是哪一種貓？心理測驗】\n🐾 經測算 ${name} 的命定貓咪是：「${catTitle}」！\n🏠 命定家庭：${home}\n快來測測看你是哪種貓咪吧！`;
+
+            if (navigator.clipboard) {
+                navigator.clipboard.writeText(shareText).then(() => {
+                    showToast("已成功複製測試結果至剪貼簿！");
+                }).catch(() => {
+                    fallbackCopy(shareText);
+                });
+            } else {
+                fallbackCopy(shareText);
+            }
+        }
+
+        function fallbackCopy(text) {
+            const textArea = document.createElement("textarea");
+            textArea.value = text;
+            document.body.appendChild(textArea);
+            textArea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textArea);
+            showToast("已成功複製測試結果至剪貼簿！");
+        }
+
+        // Paw print interaction on click/tap
+        document.addEventListener('click', function(e) {
+            // Don't trigger paw print on buttons to keep clicks clean
+            if (e.target.closest('button') || e.target.closest('input')) return;
+
+            createPawAt(e.clientX, e.clientY);
+        });
+
+        function createPawAt(x, y) {
+            const paw = document.createElement('div');
+            paw.className = 'paw-print';
+            paw.innerHTML = '<i class="fa-solid fa-paw text-2xl"></i>';
+            paw.style.left = `${x - 12}px`;
+            paw.style.top = `${y - 12}px`;
+            
+            // Random slight rotation
+            const rot = (Math.random() * 40) - 20;
+            paw.style.transform = `scale(0.6) rotate(${rot}deg)`;
+            
+            document.body.appendChild(paw);
+
+            requestAnimationFrame(() => {
+                paw.style.transform = `scale(1) rotate(${rot}deg) translateY(-10px)`;
+                paw.style.opacity = '0';
+            });
+
+            setTimeout(() => {
+                paw.remove();
+            }, 800);
+        }
+
+        function spawnCelebrationPaws() {
+            for (let i = 0; i < 8; i++) {
+                setTimeout(() => {
+                    const x = Math.random() * (window.innerWidth - 60) + 30;
+                    const y = Math.random() * (window.innerHeight - 60) + 30;
+                    createPawAt(x, y);
+                }, i * 150);
+            }
+        }
+
+        // Set default max date for birthday picker (today)
+        window.addEventListener('DOMContentLoaded', () => {
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('userBirth').setAttribute('max', today);
+        });
+    </script>
+</body>
+</html>
